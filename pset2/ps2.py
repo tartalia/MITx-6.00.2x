@@ -289,11 +289,12 @@ def runSimulation(num_robots, speed, width, height, min_coverage, num_trials,
     return round(sum(trialSteps) / float(len(trialSteps)), 2)
 
 # Uncomment this line to see how much your simulation takes on average
-print  runSimulation(1, 1.0, 5, 5, 1.0, 30, StandardRobot)
-print  runSimulation(1, 1.0, 10, 10, 0.75, 30, StandardRobot)
-print  runSimulation(1, 1.0, 10, 10, 0.9, 30, StandardRobot)
-print  runSimulation(1, 1.0, 20, 20, 1.0, 30, StandardRobot)
-print  runSimulation(3, 1.0, 20, 20, 1.0, 30, StandardRobot)
+# print 'StandardRobot simulation'
+# print  runSimulation(1, 1.0, 5, 5, 1.0, 30, StandardRobot)
+# print  runSimulation(1, 1.0, 10, 10, 0.75, 30, StandardRobot)
+# print  runSimulation(1, 1.0, 10, 10, 0.9, 30, StandardRobot)
+# print  runSimulation(1, 1.0, 20, 20, 1.0, 30, StandardRobot)
+# print  runSimulation(3, 1.0, 20, 20, 1.0, 30, StandardRobot)
 
 # === Problem 4
 class RandomWalkRobot(Robot):
@@ -308,8 +309,23 @@ class RandomWalkRobot(Robot):
         Move the robot to a new position and mark the tile it is on as having
         been cleaned.
         """
-        raise NotImplementedError
+        while True:
+            direction = random.choice(self.angles)
+            position = self.position.getNewPosition(direction, self.speed)
+            if self.room.isPositionInRoom(position):
+                self.position = position
+                self.direction = direction
+                break
+        self.room.cleanTileAtPosition(self.position)
 
+# Uncomment this line to see how much your simulation takes on average
+# print 'RandomWalkRobot simulation'
+# print  runSimulation(1, 1.0, 5, 5, 1.0, 30, RandomWalkRobot)
+# print  runSimulation(1, 1.0, 10, 10, 0.75, 30, RandomWalkRobot)
+# print  runSimulation(1, 1.0, 10, 10, 0.9, 30, RandomWalkRobot)
+# print  runSimulation(1, 1.0, 20, 20, 1.0, 30, RandomWalkRobot)
+# print  runSimulation(3, 1.0, 20, 20, 1.0, 30, RandomWalkRobot)
+# testRobotMovement(RandomWalkRobot, RectangularRoom)
 
 def showPlot1(title, x_label, y_label):
     """
@@ -329,7 +345,6 @@ def showPlot1(title, x_label, y_label):
     pylab.xlabel(x_label)
     pylab.ylabel(y_label)
     pylab.show()
-
 
 def showPlot2(title, x_label, y_label):
     """
@@ -357,17 +372,13 @@ def showPlot2(title, x_label, y_label):
 #
 # 1) Write a function call to showPlot1 that generates an appropriately-labeled
 #     plot.
-#
-#       (... your call here ...)
-#
+#showPlot1('Time It Takes 1 - 10 Robots To Clean 80% Of A Room', \
+#            "Number of Robots", "Time-steps")
 
-#
 # 2) Write a function call to showPlot2 that generates an appropriately-labeled
 #     plot.
-#
-#       (... your call here ...)
-#
-
+showPlot2('Time It Takes Two Robots To Clean 80% Of Variously Shaped Rooms', \
+            'Aspect Ratio', ' Time-steps')
 
 # ==== Tests
 import unittest
