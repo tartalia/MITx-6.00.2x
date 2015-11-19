@@ -1,8 +1,8 @@
 # Problem Set 3: Simulating the Spread of Disease and Virus Population Dynamics
-
-#import numpy
+from ps3b_precompiled_27 import *
+import numpy
 import random
-#import pylab
+import pylab
 
 '''
 Begin helper code
@@ -17,12 +17,12 @@ class NoChildException(Exception):
     """
 
 '''
-End helper code
+timeSteps helper code
 '''
 
-#
+
 # PROBLEM 2
-#
+
 class SimpleVirus(object):
 
     """
@@ -119,7 +119,6 @@ class Patient(object):
         returns: The total virus population (an integer)
         """
         return len(self.viruses)
-        # TODO
 
     def update(self):
         """
@@ -139,10 +138,22 @@ class Patient(object):
         returns: The total virus population at the end of the update (an
         integer)
         """
-
-        # TODO
-
-
+        currentVirusesPopulation = []
+        for virus in self.viruses:
+            if not virus.doesClear():
+                currentVirusesPopulation.append(virus)
+        self.viruses = currentVirusesPopulation[:]
+        popDensity = len(self.viruses) / float(self.maxPop)
+        currentVirusesPopulation = []
+        for virus in self.viruses:
+            currentVirusesPopulation.append(virus)
+            try:
+                newVirus = virus.reproduce(popDensity)
+                currentVirusesPopulation.append(newVirus)
+            except NoChildException:
+                continue
+        self.viruses = currentVirusesPopulation[:]
+        return len(self.viruses)
 
 #
 # PROBLEM 3
@@ -162,10 +173,34 @@ def simulationWithoutDrug(numViruses, maxPop, maxBirthProb, clearProb,
     clearProb: Maximum clearance probability (a float between 0-1)
     numTrials: number of simulation runs to execute (an integer)
     """
+    virusesPopulation = {}
+    averageVirusPopulation = []
+    for i in range(numTrials):
+        viruses = []
+        for j in range(numViruses):
+            virus = SimpleVirus(maxBirthProb, clearProb)
+            viruses.append(virus)
+        patient = Patient(viruses, maxPop)
+        for timeSteps in range(300):
+            if not virusesPopulation.has_key(timeSteps):
+                virusesPopulation[timeSteps] = [patient.update()]
+            else:
+                virusesPopulation[timeSteps].append(patient.update())
+    for timeSteps in virusesPopulation:
+        averageVirusPopulation.append(sum(virusesPopulation[timeSteps])/float(numTrials))
+    # graph plot
+    timeSteps = range(0, 300)
+    pylab.plot(averageVirusPopulation, timeSteps)
+    pylab.title('SimpleVirus simulation')
+    pylab.xlabel('Time Steps')
+    pylab.ylabel('Average Virus Population')
+    pylab.legend('')
+    pylab.show()
 
-    # TODO
-
-
+# simulations
+simulationWithoutDrug(100, 1000, 0.1, 0.05, 100)
+# simulationWithoutDrug(100, 1000, 0.1, 0.99, 100)
+# simulationWithoutDrug(1, 10, 1.0, 0.0, 1)
 
 #
 # PROBLEM 4
@@ -440,5 +475,20 @@ class SimpleVirusTestCase(unittest.TestCase):
         self.assertEqual(v1.doesClear(), True)
         self.assertEqual(v1.doesClear(), True)
 
-if __name__ == '__main__':
-    unittest.main()
+class PatientTestCase(unittest.TestCase):
+    def testPatientWithVirusThatIsNeverClearedAndAlwaysReproduces(self):
+        virus = SimpleVirus(1.0, 1.0)
+        patient = Patient([virus], 100)
+        for i in range(0, 100):
+            patient.update()
+        self.assertEqual(patient.getTotalPop(), 0)
+
+    def testPatientWithVirusThatIsNeverClearedAndAlwaysReproduces(self):
+        virus = SimpleVirus(1.0, 0.0)
+        patient = Patient([virus], 100)
+        for i in range(0, 100):
+            patient.update()
+        self.assertTrue(patient.getTotalPop() >= 100)
+
+# if __name__ == '__main__':
+    # unittest.main()
