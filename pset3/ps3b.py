@@ -1,8 +1,8 @@
 # Problem Set 3: Simulating the Spread of Disease and Virus Population Dynamics
-from ps3b_precompiled_27 import *
-import numpy
+#from ps3b_precompiled_27 import *
+#import numpy
 import random
-import pylab
+#import pylab
 import copy
 
 '''
@@ -375,10 +375,12 @@ class TreatedPatient(Patient):
         """
         resistPop = 0
         for virus in self.viruses:
+            resistent = True
             for drug in drugResist:
                 if not virus.isResistantTo(drug):
+                    resistent = False
                     break
-            resistPop += 1
+            if resistent: resistPop += 1
         return resistPop
 
     def update(self):
@@ -401,7 +403,22 @@ class TreatedPatient(Patient):
         returns: The total virus population at the end of the update (an
         integer)
         """
-        super(TreatedPatient, self).update()
+        currentVirusesPopulation = []
+        for virus in self.viruses:
+            if not virus.doesClear():
+                currentVirusesPopulation.append(virus)
+        self.viruses = currentVirusesPopulation[:]
+        popDensity = len(self.viruses) / float(self.maxPop)
+        currentVirusesPopulation = []
+        for virus in self.viruses:
+            currentVirusesPopulation.append(virus)
+            try:
+                newVirus = virus.reproduce(popDensity, self.getPrescriptions())
+                currentVirusesPopulation.append(newVirus)
+            except NoChildException:
+                continue
+        self.viruses = currentVirusesPopulation[:]
+        return len(self.viruses)
 
 #
 # PROBLEM 5
@@ -511,21 +528,33 @@ class ResistantVirusTestCase(unittest.TestCase):
 
 class TreatedPatientTestCase(unittest.TestCase):
     def testPatientWithVirusThatIsNeverClearedAndAlwaysReproduces(self):
-        virus = SimpleVirus(1.0, 1.0)
+        virus = ResistantVirus(1.0, 0.0, {}, 0.0)
         patient = TreatedPatient([virus], 100)
         patient.addPrescription('drug1')
         patient.addPrescription('drug2')
-        self.assertTrue(len(patient.addPrescription()) == 2)
+        self.assertTrue(len(patient.getPrescriptions()) == 2)
         for i in range(0, 100):
             patient.update()
         self.assertEqual(patient.getTotalPop(), 0)
 
     def testPatientWithVirusThatIsNeverClearedAndAlwaysReproduces(self):
-        virus = SimpleVirus(1.0, 0.0)
-        patient = Patient([virus], 100)
+        virus = ResistantVirus(1.0, 0.0, {}, 0.0)
+        patient = TreatedPatient([virus], 100)
         for i in range(0, 100):
             patient.update()
         self.assertTrue(patient.getTotalPop() >= 100)
+
+    def testPatientResistancePopulation(self):
+        virus1 = ResistantVirus(1.0, 0.0, {"drug1": True}, 0.0)
+        virus2 = ResistantVirus(1.0, 0.0, {"drug1": False, "drug2": True}, 0.0)
+        virus3 = ResistantVirus(1.0, 0.0, {"drug1": True, "drug2": True}, 0.0)
+        patient = TreatedPatient([virus1, virus2, virus3], 100)
+        self.assertEqual(patient.getResistPop(['drug1']), 2)
+        self.assertEqual(patient.getResistPop(['drug2']), 2)
+        self.assertEqual(patient.getResistPop(['drug1','drug2']), 1)
+        self.assertEqual(patient.getResistPop(['drug3']), 0)
+        self.assertEqual(patient.getResistPop(['drug1', 'drug3']), 0)
+        self.assertEqual(patient.getResistPop(['drug1','drug2', 'drug3']), 0)
 
 if __name__ == '__main__':
     unittest.main()
