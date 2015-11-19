@@ -309,16 +309,12 @@ class ResistantVirus(SimpleVirus):
 
         if super(ResistantVirus, self).reproduce(popDensity):
             offspringResistances = copy.copy(self.resistances)
-            if (len(offspringResistances) > 0):
-                drugs = offspringResistances.keys()
-                random.shuffle(drugs)
-                maxProb = len(offspringResistances) * (self.mutProb)
-                counter = 0
-                while counter <= maxProb:
-                    drug = random.choice(drugs)
-                    print offspringResistances[drug]
-                    offspringResistances[drug] = not offspringResistances[drug]
-                    counter += 1
+            for virus in offspringResistances:
+                if random.random() <= self.mutProb:
+                    if offspringResistances[virus]:
+                        offspringResistances[virus] = False
+                    else:
+                        offspringResistances[virus] = True
 
             offspring = ResistantVirus(self.maxBirthProb, self.clearProb, \
                                         offspringResistances, self.mutProb)
@@ -538,10 +534,15 @@ class ResistantVirusTestCase(unittest.TestCase):
 
     def testPositiveMutability(self):
         virus = ResistantVirus(1.0, 0.0, {"drug2": True}, 1.0)
+        positive, negative = 0, 0
         for i in range(100):
-            offspring = virus.reproduce(0, [])
-            print offspring.getResistances()
-
+            virus = virus.reproduce(0, [])
+            if virus.getResistances()['drug2'] == True:
+                positive += 1
+            else:
+                negative += 1
+        self.assertTrue(positive == 50)
+        self.assertTrue(negative == 50)
 
 if __name__ == '__main__':
     unittest.main()
