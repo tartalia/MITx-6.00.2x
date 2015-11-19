@@ -337,9 +337,8 @@ class TreatedPatient(Patient):
 
         maxPop: The  maximum virus population for this patient (an integer)
         """
-
-        # TODO
-
+        Patient.__init__(self, viruses, maxPop)
+        self.drugs = []
 
     def addPrescription(self, newDrug):
         """
@@ -351,9 +350,8 @@ class TreatedPatient(Patient):
 
         postcondition: The list of drugs being administered to a patient is updated
         """
-
-        # TODO
-
+        if not newDrug in self.drugs:
+            self.drugs.append(newDrug)
 
     def getPrescriptions(self):
         """
@@ -362,9 +360,7 @@ class TreatedPatient(Patient):
         returns: The list of drug names (strings) being administered to this
         patient.
         """
-
-        # TODO
-
+        return self.drugs
 
     def getResistPop(self, drugResist):
         """
@@ -377,9 +373,13 @@ class TreatedPatient(Patient):
         returns: The population of viruses (an integer) with resistances to all
         drugs in the drugResist list.
         """
-
-        # TODO
-
+        resistPop = 0
+        for virus in self.viruses:
+            for drug in drugResist:
+                if not virus.isResistantTo(drug):
+                    break
+            resistPop += 1
+        return resistPop
 
     def update(self):
         """
@@ -401,10 +401,7 @@ class TreatedPatient(Patient):
         returns: The total virus population at the end of the update (an
         integer)
         """
-
-        # TODO
-
-
+        super(TreatedPatient, self).update()
 
 #
 # PROBLEM 5
@@ -438,55 +435,23 @@ import unittest
 class SimpleVirusTestCase(unittest.TestCase):
     def testIsNeverClearedAndAlwaysReproduces(self):
         v1 = SimpleVirus(1.0, 0.0)
-        self.assertEqual(v1.doesClear(), False)
-        self.assertEqual(v1.doesClear(), False)
-        self.assertEqual(v1.doesClear(), False)
-        self.assertEqual(v1.doesClear(), False)
-        self.assertEqual(v1.doesClear(), False)
-        self.assertEqual(v1.doesClear(), False)
-        self.assertEqual(v1.doesClear(), False)
-        self.assertEqual(v1.doesClear(), False)
-        self.assertEqual(v1.doesClear(), False)
-        self.assertEqual(v1.doesClear(), False)
+        for i in range(10):
+            self.assertEqual(v1.doesClear(), False)
 
     def testThatIsNeverClearedAndNeverReproduces(self):
         v1 = SimpleVirus(0.0, 0.0)
-        self.assertEqual(v1.doesClear(), False)
-        self.assertEqual(v1.doesClear(), False)
-        self.assertEqual(v1.doesClear(), False)
-        self.assertEqual(v1.doesClear(), False)
-        self.assertEqual(v1.doesClear(), False)
-        self.assertEqual(v1.doesClear(), False)
-        self.assertEqual(v1.doesClear(), False)
-        self.assertEqual(v1.doesClear(), False)
-        self.assertEqual(v1.doesClear(), False)
-        self.assertEqual(v1.doesClear(), False)
+        for i in range(10):
+            self.assertEqual(v1.doesClear(), False)
 
     def testThatsAlwayesClearedAndAlwaysReproduces(self):
         v1 = SimpleVirus(1.0, 1.0)
-        self.assertEqual(v1.doesClear(), True)
-        self.assertEqual(v1.doesClear(), True)
-        self.assertEqual(v1.doesClear(), True)
-        self.assertEqual(v1.doesClear(), True)
-        self.assertEqual(v1.doesClear(), True)
-        self.assertEqual(v1.doesClear(), True)
-        self.assertEqual(v1.doesClear(), True)
-        self.assertEqual(v1.doesClear(), True)
-        self.assertEqual(v1.doesClear(), True)
-        self.assertEqual(v1.doesClear(), True)
+        for i in range(10):
+            self.assertEqual(v1.doesClear(), True)
 
     def testThatAlwaysClearedAndNeverReproduces(self):
         v1 = SimpleVirus(0.0, 1.0)
-        self.assertEqual(v1.doesClear(), True)
-        self.assertEqual(v1.doesClear(), True)
-        self.assertEqual(v1.doesClear(), True)
-        self.assertEqual(v1.doesClear(), True)
-        self.assertEqual(v1.doesClear(), True)
-        self.assertEqual(v1.doesClear(), True)
-        self.assertEqual(v1.doesClear(), True)
-        self.assertEqual(v1.doesClear(), True)
-        self.assertEqual(v1.doesClear(), True)
-        self.assertEqual(v1.doesClear(), True)
+        for i in range(10):
+            self.assertEqual(v1.doesClear(), True)
 
 class PatientTestCase(unittest.TestCase):
     def testPatientWithVirusThatIsNeverClearedAndAlwaysReproduces(self):
@@ -504,33 +469,33 @@ class PatientTestCase(unittest.TestCase):
         self.assertTrue(patient.getTotalPop() >= 100)
 
 class ResistantVirusTestCase(unittest.TestCase):
-    # def testResistantVirusThatIsNeverClearedAndAlwaysReproduces(self):
-    #     virus = ResistantVirus(1.0, 0.0, {}, 0.0)
-    #     self.assertTrue(virus.reproduce(0.0, {}) != None)
-    #
-    # def testVirusResistance(self):
-    #     virus = ResistantVirus(0.0, 1.0, {"drug1": True, "drug2": False}, 0.0)
-    #     self.assertEqual(virus.isResistantTo('drug3'), False)
-    #
-    # def testMutProbApplied(self):
-    #     virus = ResistantVirus(1.0, 0.0, {'drug1':True, 'drug2': True, \
-    #                                       'drug3': True, 'drug4': True, \
-    #                                       'drug5': True, 'drug6': True}, 0.5)
-    #     for i in range(10):
-    #         virus.reproduce(0, [])
-    #
-    # def testVirusReproductionWithDrugsApplied(self):
-    #     virus = ResistantVirus(1.0, 0.0, {"drug1":True, "drug2":False}, 0.0)
-    #     with self.assertRaises(NoChildException):
-    #         child = virus.reproduce(0, ["drug2"])
-    #     child = virus.reproduce(0, ["drug1"])
-    #
-    # def testVirusesDrugsMutation(self):
-    #     virus = ResistantVirus(1.0, 0.0, {'drug1':True, 'drug2': True, \
-    #                                       'drug3': True, 'drug4': True, \
-    #                                       'drug5': True, 'drug6': True}, 0.5)
-    #     for i in range(10):
-    #         offspring = virus.reproduce(0, [])
+    def testResistantVirusThatIsNeverClearedAndAlwaysReproduces(self):
+        virus = ResistantVirus(1.0, 0.0, {}, 0.0)
+        self.assertTrue(virus.reproduce(0.0, {}) != None)
+
+    def testVirusResistance(self):
+        virus = ResistantVirus(0.0, 1.0, {"drug1": True, "drug2": False}, 0.0)
+        self.assertEqual(virus.isResistantTo('drug3'), False)
+
+    def testMutProbApplied(self):
+        virus = ResistantVirus(1.0, 0.0, {'drug1':True, 'drug2': True, \
+                                          'drug3': True, 'drug4': True, \
+                                          'drug5': True, 'drug6': True}, 0.5)
+        for i in range(10):
+            virus.reproduce(0, [])
+
+    def testVirusReproductionWithDrugsApplied(self):
+        virus = ResistantVirus(1.0, 0.0, {"drug1":True, "drug2":False}, 0.0)
+        with self.assertRaises(NoChildException):
+            child = virus.reproduce(0, ["drug2"])
+        child = virus.reproduce(0, ["drug1"])
+
+    def testVirusesDrugsMutation(self):
+        virus = ResistantVirus(1.0, 0.0, {'drug1':True, 'drug2': True, \
+                                          'drug3': True, 'drug4': True, \
+                                          'drug5': True, 'drug6': True}, 0.5)
+        for i in range(10):
+            offspring = virus.reproduce(0, [])
 
     def testPositiveMutability(self):
         virus = ResistantVirus(1.0, 0.0, {"drug2": True}, 1.0)
@@ -543,6 +508,24 @@ class ResistantVirusTestCase(unittest.TestCase):
                 negative += 1
         self.assertTrue(positive == 50)
         self.assertTrue(negative == 50)
+
+class TreatedPatientTestCase(unittest.TestCase):
+    def testPatientWithVirusThatIsNeverClearedAndAlwaysReproduces(self):
+        virus = SimpleVirus(1.0, 1.0)
+        patient = TreatedPatient([virus], 100)
+        patient.addPrescription('drug1')
+        patient.addPrescription('drug2')
+        self.assertTrue(len(patient.addPrescription()) == 2)
+        for i in range(0, 100):
+            patient.update()
+        self.assertEqual(patient.getTotalPop(), 0)
+
+    def testPatientWithVirusThatIsNeverClearedAndAlwaysReproduces(self):
+        virus = SimpleVirus(1.0, 0.0)
+        patient = Patient([virus], 100)
+        for i in range(0, 100):
+            patient.update()
+        self.assertTrue(patient.getTotalPop() >= 100)
 
 if __name__ == '__main__':
     unittest.main()
