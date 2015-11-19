@@ -3,6 +3,7 @@ from ps3b_precompiled_27 import *
 import numpy
 import random
 import pylab
+import copy
 
 '''
 Begin helper code
@@ -198,7 +199,7 @@ def simulationWithoutDrug(numViruses, maxPop, maxBirthProb, clearProb,
     pylab.show()
 
 # simulations
-simulationWithoutDrug(100, 1000, 0.1, 0.05, 100)
+# simulationWithoutDrug(100, 1000, 0.1, 0.05, 100)
 # simulationWithoutDrug(100, 1000, 0.1, 0.99, 100)
 # simulationWithoutDrug(1, 10, 1.0, 0.0, 1)
 
@@ -227,21 +228,21 @@ class ResistantVirus(SimpleVirus):
         mutProb: Mutation probability for this virus particle (a float). This is
         the probability of the offspring acquiring or losing resistance to a drug.
         """
-
-        # TODO
-
+        SimpleVirus.__init__(self, maxBirthProb, clearProb)
+        self.resistances = resistances
+        self.mutProb = mutProb
 
     def getResistances(self):
         """
         Returns the resistances for this virus.
         """
-        # TODO
+        return self.resistances
 
     def getMutProb(self):
         """
         Returns the mutation probability for this virus.
         """
-        # TODO
+        return self.mutProb
 
     def isResistantTo(self, drug):
         """
@@ -254,9 +255,9 @@ class ResistantVirus(SimpleVirus):
         returns: True if this virus instance is resistant to the drug, False
         otherwise.
         """
-
-        # TODO
-
+        if not self.resistances.has_key(drug):
+            return False
+        return self.resistances[drug]
 
     def reproduce(self, popDensity, activeDrugs):
         """
@@ -302,10 +303,26 @@ class ResistantVirus(SimpleVirus):
         maxBirthProb and clearProb values as this virus. Raises a
         NoChildException if this virus particle does not reproduce.
         """
+        for drug in activeDrugs:
+            if not self.isResistantTo(drug):
+                raise NoChildException
 
-        # TODO
+        if super(ResistantVirus, self).reproduce(popDensity):
+            offspringResistances = copy.copy(self.resistances)
+            if (len(offspringResistances) > 0):
+                drugs = offspringResistances.keys()
+                random.shuffle(drugs)
+                maxProb = len(offspringResistances) * (self.mutProb)
+                counter = 0
+                while counter <= maxProb:
+                    drug = random.choice(drugs)
+                    print offspringResistances[drug]
+                    offspringResistances[drug] = not offspringResistances[drug]
+                    counter += 1
 
-
+            offspring = ResistantVirus(self.maxBirthProb, self.clearProb, \
+                                        offspringResistances, self.mutProb)
+        return offspring
 
 class TreatedPatient(Patient):
     """
@@ -490,5 +507,41 @@ class PatientTestCase(unittest.TestCase):
             patient.update()
         self.assertTrue(patient.getTotalPop() >= 100)
 
-# if __name__ == '__main__':
-    # unittest.main()
+class ResistantVirusTestCase(unittest.TestCase):
+    # def testResistantVirusThatIsNeverClearedAndAlwaysReproduces(self):
+    #     virus = ResistantVirus(1.0, 0.0, {}, 0.0)
+    #     self.assertTrue(virus.reproduce(0.0, {}) != None)
+    #
+    # def testVirusResistance(self):
+    #     virus = ResistantVirus(0.0, 1.0, {"drug1": True, "drug2": False}, 0.0)
+    #     self.assertEqual(virus.isResistantTo('drug3'), False)
+    #
+    # def testMutProbApplied(self):
+    #     virus = ResistantVirus(1.0, 0.0, {'drug1':True, 'drug2': True, \
+    #                                       'drug3': True, 'drug4': True, \
+    #                                       'drug5': True, 'drug6': True}, 0.5)
+    #     for i in range(10):
+    #         virus.reproduce(0, [])
+    #
+    # def testVirusReproductionWithDrugsApplied(self):
+    #     virus = ResistantVirus(1.0, 0.0, {"drug1":True, "drug2":False}, 0.0)
+    #     with self.assertRaises(NoChildException):
+    #         child = virus.reproduce(0, ["drug2"])
+    #     child = virus.reproduce(0, ["drug1"])
+    #
+    # def testVirusesDrugsMutation(self):
+    #     virus = ResistantVirus(1.0, 0.0, {'drug1':True, 'drug2': True, \
+    #                                       'drug3': True, 'drug4': True, \
+    #                                       'drug5': True, 'drug6': True}, 0.5)
+    #     for i in range(10):
+    #         offspring = virus.reproduce(0, [])
+
+    def testPositiveMutability(self):
+        virus = ResistantVirus(1.0, 0.0, {"drug2": True}, 1.0)
+        for i in range(100):
+            offspring = virus.reproduce(0, [])
+            print offspring.getResistances()
+
+
+if __name__ == '__main__':
+    unittest.main()
