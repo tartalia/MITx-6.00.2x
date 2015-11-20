@@ -1,8 +1,8 @@
 # Problem Set 3: Simulating the Spread of Disease and Virus Population Dynamics
 #from ps3b_precompiled_27 import *
-#import numpy
+import numpy
 import random
-#import pylab
+import pylab
 import copy
 
 '''
@@ -445,8 +445,55 @@ def simulationWithDrug(numViruses, maxPop, maxBirthProb, clearProb, resistances,
     numTrials: number of simulation runs to execute (an integer)
 
     """
+    virusesPopulation = {}
+    virusesPopulationWithDrugs = {}
+    averageVirusPopulation = []
+    averageVirusPopulationWithDrugs = []
+    for i in range(numTrials):
+        viruses = []
+        for j in range(numViruses):
+            virus = ResistantVirus(maxBirthProb, clearProb, resistances, mutProb)
+            viruses.append(virus)
+        patient = TreatedPatient(viruses, maxPop)
+        # 1st data for no drugs
+        for timeSteps in range(150):
+            patient.update()
+            if not virusesPopulation.has_key(timeSteps):
+                virusesPopulation[timeSteps] = []
+                virusesPopulationWithDrugs[timeSteps] = []
+            virusesPopulation[timeSteps].append(patient.getTotalPop())
+            virusesPopulationWithDrugs[timeSteps].append(patient.getResistPop(['guttagonol']))
 
-    # TODO
+        patient.addPrescription('guttagonol')
+        for timeSteps in range(150, 300):
+            patient.update()
+            if not virusesPopulation.has_key(timeSteps):
+                virusesPopulation[timeSteps] = []
+                virusesPopulationWithDrugs[timeSteps] = []
+            virusesPopulation[timeSteps].append(patient.getTotalPop())
+            virusesPopulationWithDrugs[timeSteps].append(patient.getResistPop(['guttagonol']))
+
+    for timeSteps in range(300):
+        # averageVirusPopulation.append(round(sum(virusesPopulation[timeSteps])/float(numTrials), 2))
+        # averageVirusPopulationWithDrugs.append(round(sum(virusesPopulationWithDrugs[timeSteps])/float(numTrials), 2))
+        averageVirusPopulation.append(sum(virusesPopulation[timeSteps])/numTrials)
+        averageVirusPopulationWithDrugs.append(sum(virusesPopulationWithDrugs[timeSteps])/numTrials)
+
+    print averageVirusPopulation
+    print averageVirusPopulationWithDrugs
+
+    pylab.plot(averageVirusPopulation)
+    pylab.plot(averageVirusPopulationWithDrugs)
+    pylab.title('ResistantVirus simulation')
+    pylab.xlabel('time step')
+    pylab.ylabel('# viruses')
+    pylab.legend('')
+    pylab.show()
+
+# simulationWithDrug(100, 1000, 0.1, 0.05, {'guttagonol': False}, 0.005, 150)
+simulationWithDrug(75, 100, .8, 0.1, {"guttagonol": True}, 0.8, 1)
+# simulationWithDrug(1, 20, 1.0, 0.0, {"guttagonol": True}, 1.0, 5)
+# simulationWithDrug(1, 10, 1.0, 0.0, {}, 1.0, 5)
 
 import unittest
 class SimpleVirusTestCase(unittest.TestCase):
@@ -556,5 +603,5 @@ class TreatedPatientTestCase(unittest.TestCase):
         self.assertEqual(patient.getResistPop(['drug1', 'drug3']), 0)
         self.assertEqual(patient.getResistPop(['drug1','drug2', 'drug3']), 0)
 
-if __name__ == '__main__':
-    unittest.main()
+# if __name__ == '__main__':
+#     unittest.main()
