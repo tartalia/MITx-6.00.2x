@@ -476,11 +476,11 @@ def simulationWithDrug(numViruses, maxPop, maxBirthProb, clearProb, resistances,
     for timeSteps in range(300):
         # averageVirusPopulation.append(round(sum(virusesPopulation[timeSteps])/float(numTrials), 2))
         # averageVirusPopulationWithDrugs.append(round(sum(virusesPopulationWithDrugs[timeSteps])/float(numTrials), 2))
-        averageVirusPopulation.append(sum(virusesPopulation[timeSteps])/numTrials)
-        averageVirusPopulationWithDrugs.append(sum(virusesPopulationWithDrugs[timeSteps])/numTrials)
+        averageVirusPopulation.append(sum(virusesPopulation[timeSteps])/float(numTrials))
+        averageVirusPopulationWithDrugs.append(sum(virusesPopulationWithDrugs[timeSteps])/float(numTrials))
 
-    print averageVirusPopulation
-    print averageVirusPopulationWithDrugs
+    # print averageVirusPopulation
+    # print averageVirusPopulationWithDrugs
 
     pylab.plot(averageVirusPopulation)
     pylab.plot(averageVirusPopulationWithDrugs)
